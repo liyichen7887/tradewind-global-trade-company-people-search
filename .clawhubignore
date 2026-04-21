@@ -1,0 +1,4 @@
+# Patterns for ClawHub publish/sync (see https://github.com/openclaw/clawhub/blob/main/docs/skill-format.md)
+.git/
+*.log
+.DS_Store
