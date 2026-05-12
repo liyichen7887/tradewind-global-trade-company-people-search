@@ -10,6 +10,7 @@ import json
 
 from auth import load_api_key
 from common import TradewindClient, load_settings
+from _body_hints import warn_people_search_body
 from _util import dump_json
 
 
@@ -25,7 +26,9 @@ def main() -> None:
     load_api_key()
     client = TradewindClient(load_settings())
     if args.cmd == "search":
-        dump_json(client.post_api("people/search", json.loads(args.body)))
+        body = json.loads(args.body)
+        warn_people_search_body(body)
+        dump_json(client.post_api("people/search", body))
         return
     if args.body:
         dump_json(client.post_api("people/enrich", json.loads(args.body)))

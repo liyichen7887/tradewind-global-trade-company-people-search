@@ -17,8 +17,13 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
     t = sub.add_parser("technologies-csv", help="企业技术栈 CSV")
     t.add_argument("-o", "--out", help="保存路径；省略则打印到 stdout")
-    j = sub.add_parser("agentic-country-lang", help="Agentic cr/lang 对照 JSON")
+    j = sub.add_parser("agentic-country-lang", help="Agentic cr/lang 对照 JSON（GET .../agentic-country-cr-lang.json）")
     j.add_argument("-o", "--out", help="保存路径；省略则尝试 stdout JSON 美化")
+    j2 = sub.add_parser(
+        "agentic-country-cr-lang",
+        help="同 agentic-country-lang，与 URL 文件名 agentic-country-cr-lang.json 一致",
+    )
+    j2.add_argument("-o", "--out", help="保存路径；省略则尝试 stdout JSON 美化")
     args = p.parse_args()
     client = TradewindClient(load_settings())
     if args.cmd == "technologies-csv":
@@ -29,7 +34,7 @@ def main() -> None:
             print(args.out, file=sys.stderr)
         else:
             sys.stdout.buffer.write(raw)
-    else:
+    elif args.cmd in ("agentic-country-lang", "agentic-country-cr-lang"):
         raw = client.get_bytes("reference/agentic-country-cr-lang.json")
         if args.out:
             with open(args.out, "wb") as fp:
