@@ -112,3 +112,88 @@ cd scripts; python people_api.py search --body "{\"page\":1,\"per_page\":5,\"com
 ## 反馈与支持
 
 功能与计费问题请以 [信风官网](https://www.trade-wind.co) 与控制台内说明为准；本仓库 Issues 可用于 Skill 与脚本的改进反馈。
+
+
+---
+## TradeWind Skill 新手教程：省积分、写准 Prompt
+
+1. 先弄清三种「模式」
+<img width="399" height="243" alt="截屏2026-06-01 下午3 22 57" src="https://github.com/user-attachments/assets/a740cb11-cf88-4276-a026-38ce2407b87e" />
+
+原则：能一句话说清公司 + 职位 + 国家的，用 瀑布流 + first_match；只有当你明确要「尽量搜全、多源合并」时才写 aggregate；只有当你要「跑任务、批量画像」时才用 agentic。
+
+2. 最容易浪费积分的 5 类情况
+
+  （1）误用 aggregate 或 Prompt 里写「尽量全面 / 多源 / 全部渠道」
+  Agent 容易把 waterfall.mode 设成 aggregate，或反复换数据源重试。
+  省钱写法：在 Prompt 里显式约束：
+  使用 TradeWind 瀑布流 people search，waterfall.mode 用 first_match，不要 aggregate。先只查第 1 页，per_page 不超过 10。
+  
+  （2）请求体字段写错 → 筛选失效 → 白打一次（甚至像「全库」）
+  例如用 company_names、titles、顶层 emails，服务端会忽略未知字段，仍计费但结果不对，Agent 可能再试 aggregate / 换接口。
+  省钱 + 准确写法：
+  公司用 company.domains: ["stripe.com"]（有域名优先域名）。销售用 job.departments: ["sales"]，不要用中文「销售部」当 department。不要用 company_names 这种顶层字段。
+  可让环境开 TRADEWIND_BODY_HINTS=1，在误写时 stderr 有提示（见 SKILL.md）。
+  
+  （3）该用瀑布流却上了智能体
+  「帮我找 Stripe 的销售」→ 若 Agent 创建 agentic 任务，成本高、且慢。
+  省钱写法：
+  这是实时、单公司、明确职位查询，用 people_api.py search，不要创建 agentic 任务。
+  
+  （4）per_page 过大、无分页地「多要几条」
+  省钱写法：
+  page: 1，per_page: 5（或 10）。满意再要下一页，不要一次 100。
+  
+  （5）search 后又 enrich、又 verify，链式调用过多
+  search 已有基础列表时，不要对每一个人立刻 enrich + 邮箱验证。
+  省钱写法：
+  先 search 返回列表；我只对你列出的前 3 个候选人做 enrich。邮箱验证仅在我提供的地址上执行。
+
+3. 怎么写 Prompt：模板与反例
+模板 A：某公司某职位（最常用，最便宜路径）
+用 TradeWind skill：
+- 接口：people search（瀑布流）
+- waterfall.mode：first_match（禁止 aggregate）
+- 公司：stripe.com → company.domains
+- 职位：销售 → job.departments: ["sales"]，可加 job.job_titles: ["account executive"]
+- 分页：page 1，per_page 5
+- 若结果 meta.total_results 异常大或人与公司无关，先检查 JSON 字段是否嵌套正确，不要先开 aggregate
+模板 B：按国家找公司
+用 company search，first_match，location.country_code: ["US"]（ISO2），per_page 10。
+不要 agentic。不要 aggregate，除非我明确说「要多源拼全」。
+模板 C：只有在你真的要跑任务时用智能体
+用 agentic：先 reference_api agentic-country-cr-lang 查美国对应的 country/cr/lang，
+再 agentic search。keyword: coffee importer。这是异步任务，不要同时再跑 people search 重复搜。
+反例 Prompt（容易烧钱）
+暂时无法在飞书文档外展示此内容
+
+4.让 Agent「更准」的 Prompt 技巧
+  1. 给结构化事实：公司域名 > 公司中文名；职位用英文关键词或文档枚举 sales，不要只写「销售岗」。
+  2. 区分 search / enrich：「先列表」用 search；「要某人邮箱电话详情」再 enrich，且 enrich 用 identity（姓名 + domain），不要把 search 整段 JSON 抄过去。
+  3. 国家两套体系：瀑布流用 ISO2（US）；智能体用参考 JSON 的 USA / countryUS / English（见 skill 里 country-and-locale.md）。Prompt 里可写：「瀑布流用 ISO2，agentic 必须先下 cr-lang 参考」。
+  4. 一次说清约束：把「不要 aggregate / 不要 agentic / per_page 上限」写进同一条 Prompt，减少 Agent 自作主张。
+  5. 调试阶段：TRADEWIND_HTTP_LOG=1 看 stderr 实际 body，避免「猜字段 → 失败 → 再试 aggregate」的连环调用。
+
+5. 推荐工作流（低成本）
+  1. 明确意图 → 找人/找公司/海关/异步任务（对照 intent-routing）
+  2. 默认：瀑布流 + first_match + 小 per_page
+  3. 有域名 → company.domains；有部门 → job.departments 枚举
+  4. 看返回 meta.total_results 与 people/companies 是否匹配
+  5. 不够再：加大 page / 略放宽 job_titles（仍 first_match）
+  6. 仍不够且你接受多源成本 → 再明确说「本次改用 aggregate」
+  7. 要批量潜客画像 → 单独一次 agentic，不要和 2–6 混跑
+响应里的 meta.billing（若 API 返回）可用来核对单次扣费；长期可在控制台 https://app.trade-wind.co/console/auth/login 看用量，或用 user_api.py access-logs（需 Key）。
+
+6. 给 OpenClaw / Cursor 的「系统级」一句约束（可选）
+挂载 skill 后，可在自定义说明里加：
+调用 TradeWind 时：默认 waterfall.mode=first_match；禁止在未明确要求时使用 aggregate 或 agentic；per_page≤10；公司优先 company.domains；遵守 SKILL.md 与 references/request-body-cheatsheet.md；失败时先查字段嵌套，不要通过 aggregate 补救。
+
+7. 自检清单（每次让 Agent 调 API 前）
+  -  用的是 people/company/customs/agentic 里哪一种？
+  -  是否写了 first_match（除非你要 aggregate）？
+  -  公司是否是 company.domains / company.names，不是 company_names？
+  -  部门是否是 job.departments 枚举（如 sales）？
+  -  per_page 是否克制？
+  -  是否避免「全面 / 所有渠道 / 智能体 + 实时搜索」混用？
+
+说明：具体扣费规则以 信风 API 文档 与控制台为准；本教程按 skill 与 API 2.0 行为归纳，帮助你在 Prompt 层减少误用模式与无效请求。
