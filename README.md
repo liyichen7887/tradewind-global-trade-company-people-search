@@ -17,6 +17,8 @@
 
 在控制台创建 **`tw_*` API Key** 或取得 **JWT** 后，通过环境变量 `TRADEWIND_API_KEY` 供脚本与 Agent 使用（勿将密钥提交到 Git）。
 
+Base URL: https://app.trade-wind.co
+
 ---
 
 ## 本仓库包含什么
