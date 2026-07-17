@@ -1,4 +1,4 @@
-# TradeWind 信风 · OpenClaw / Cursor Skill
+# TradeWind 信风 · Skill for OpenClaw / Cursor / Claude Code / WorkBuddy / Accio / Coze
 
 面向 [TradeWind 信风](https://www.trade-wind.co) HTTP API 的 **Agent Skill** 与 **Python 命令行脚本**（标准库 `urllib`，无额外 pip 依赖）。适合在 OpenClaw、Cursor 等环境中让 AI 按文档正确调用企业/联系人搜索、海关数据、智能体获客、邮箱验证等接口。
 
