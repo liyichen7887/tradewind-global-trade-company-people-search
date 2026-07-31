@@ -65,3 +65,11 @@ export TRADEWIND_API_BASE_URL="https://app.trade-wind.co"   # Default value, mod
 
 python3 health.py liveness
 python3 people_api.py search --body '{"page":1,"per_page":5,"company":{"domains":["stripe.com"]},"job":{"departments":["sales"]}}'
+
+---
+
+## Frequent Issues for debugging purpose
+
+ - base url is not correct.
+ - required parameters of the request are missing / invalid.
+ - invalid enum parameter value. For example, 'Limit' must be one of [10, 20, 50, 100].
