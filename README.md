@@ -200,7 +200,7 @@ cd scripts; python people_api.py search --body "{\"page\":1,\"per_page\":5,\"com
   -  是否避免「全面 / 所有渠道 / 智能体 + 实时搜索」混用？
 
 最容易出现的错误如下，在返回报错时请自检：
-  -  base url填写错误（正确url为https://app.trade-wind.co）‘
+  -  base url填写错误（正确url为https://app.trade-wind.co）
   -  未申请Api key
   -  接口的必填参数未正确填写，漏填，或使用AI生成的错误近义词填写
   -  有枚举值的接口参数未正确填写，如Limit必须填[10,20,50,100]值中的一个，或国家/语言编码未正确传参
