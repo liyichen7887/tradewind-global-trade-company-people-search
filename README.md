@@ -193,9 +193,15 @@ cd scripts; python people_api.py search --body "{\"page\":1,\"per_page\":5,\"com
 7. 自检清单（每次让 Agent 调 API 前）
   -  用的是 people/company/customs/agentic 里哪一种？
   -  是否写了 first_match（除非你要 aggregate）？
+  -  aggregate/first_match模式是否选择错误，造成积分大量消耗？
   -  公司是否是 company.domains / company.names，不是 company_names？
   -  部门是否是 job.departments 枚举（如 sales）？
   -  per_page 是否克制？
   -  是否避免「全面 / 所有渠道 / 智能体 + 实时搜索」混用？
+
+8. 最容易出现的错误如下，在返回报错时请自检：
+  -  base url填写错误
+  -  接口的必填参数未正确填写
+  -  有枚举值的参数未正确填写，如Limit必须填[10,20,50,100]值中的一个
 
 说明：具体扣费规则以 信风 API 文档 与控制台为准；本教程按 skill 与 API 2.0 行为归纳，帮助你在 Prompt 层减少误用模式与无效请求。
