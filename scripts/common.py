@@ -17,6 +17,16 @@ from typing import Any, Mapping
 from auth import bearer_headers
 
 
+UPSTREAM_FAILURE_MARKERS = (
+    "thinkphp", "think\\", "vendor/topthink", "stack trace", "fatal error",
+    "uncaught exception", "call stack", "traceback",
+)
+UPSTREAM_TECHNICAL_MARKERS = (".php", "php:", "vendor/", "framework/")
+TOTAL_KEYS = {"total", "totalresults", "totalcount"}
+HAS_MORE_KEYS = {"hasmore", "hasnext", "more"}
+ITEM_KEYS = {"results", "items", "records", "companies", "people", "shipments"}
+
+
 def _env(name: str, default: str | None = None) -> str | None:
     v = os.environ.get(name)
     if v is None or v == "":
@@ -63,6 +73,80 @@ class RateLimiter:
 def _log(prefix: str, obj: Any) -> None:
     text = json.dumps(obj, ensure_ascii=False, indent=2) if not isinstance(obj, str) else obj
     print(f"[tradewind] {prefix}\n{text}", file=sys.stderr)
+
+
+def _normalized_key(value: str) -> str:
+    return "".join(character for character in value.casefold() if character.isalnum())
+
+
+def _all_strings(value: Any) -> list[str]:
+    output: list[str] = []
+    if isinstance(value, str):
+        output.append(value)
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            output.append(str(key))
+            output.extend(_all_strings(child))
+    elif isinstance(value, list):
+        for child in value:
+            output.extend(_all_strings(child))
+    return output
+
+
+def invalid_upstream_payload(value: Any) -> bool:
+    text = "\n".join(_all_strings(value)).casefold()
+    return (
+        any(marker in text for marker in UPSTREAM_FAILURE_MARKERS)
+        and any(marker in text for marker in UPSTREAM_TECHNICAL_MARKERS)
+    )
+
+
+def _pagination_conflicts(value: Any, path: str = "$") -> list[str]:
+    conflicts: list[str] = []
+    if isinstance(value, dict):
+        normalized = {_normalized_key(str(key)): child for key, child in value.items()}
+        total = next((normalized[key] for key in TOTAL_KEYS if key in normalized), None)
+        has_more = next((normalized[key] for key in HAS_MORE_KEYS if key in normalized), None)
+        items = next(
+            (normalized[key] for key in ITEM_KEYS if key in normalized and isinstance(normalized[key], list)),
+            None,
+        )
+        if isinstance(total, (int, float)) and has_more is False and isinstance(items, list) and total > len(items):
+            conflicts.append(
+                f"{path}: total={total} exceeds returned={len(items)} while has_more=false"
+            )
+        for key, child in value.items():
+            conflicts.extend(_pagination_conflicts(child, f"{path}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            conflicts.extend(_pagination_conflicts(child, f"{path}[{index}]"))
+    return conflicts
+
+
+def assess_provider_payload(value: Any) -> Any:
+    if invalid_upstream_payload(value):
+        return {
+            "provider": "tradewind",
+            "providerStatus": "upstream_unavailable",
+            "data": None,
+            "warnings": [{
+                "code": "invalid_upstream_payload",
+                "message": "Upstream returned an application stack/error payload; no records were accepted.",
+            }],
+        }
+    conflicts = _pagination_conflicts(value)
+    if conflicts and isinstance(value, dict):
+        result = dict(value)
+        warnings = list(result.get("providerWarnings", []))
+        warnings.append({
+            "code": "pagination_metadata_inconsistent",
+            "message": "Pagination metadata does not prove exhaustive coverage.",
+            "details": conflicts,
+        })
+        result["providerWarnings"] = warnings
+        result["coverageStatus"] = "not_exhaustive"
+        return result
+    return value
 
 
 class TradewindClient:
@@ -131,7 +215,7 @@ class TradewindClient:
         if self.settings.log_http:
             _log("response", raw[:8000] + ("…" if len(raw) > 8000 else ""))
 
-        return json.loads(raw) if raw else None
+        return assess_provider_payload(json.loads(raw)) if raw else None
 
     def get_api(
         self,

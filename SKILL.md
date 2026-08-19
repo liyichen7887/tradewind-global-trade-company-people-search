@@ -96,6 +96,8 @@ metadata:
 
 更全的合法键与「误写 → 正写」对照见 [references/request-body-cheatsheet.md](references/request-body-cheatsheet.md)。
 
+精确公司、人员、海关或邮箱结果交给 GETO 前，按 [Provider Observation 采纳合同](references/observation-acceptance.md) 记录主体锚点、国家字段、覆盖状态和证据范围。法律后缀不构成主体锚点；请求国家没有体现在返回记录时，不能声称该记录通过国家过滤。邮箱验证只支持邮箱可投递性。
+
 示例（在 `scripts/` 目录下）：
 
 ```bash
@@ -122,4 +124,5 @@ python user_api.py access-logs -F take=10
 - 自然语言问法 → 脚本与字段：[references/intent-routing.md](references/intent-routing.md)
 - 国家码：瀑布流 ISO2 vs 智能体 country/cr/lang：[references/country-and-locale.md](references/country-and-locale.md)
 - 请求体合法键与常见误写：[references/request-body-cheatsheet.md](references/request-body-cheatsheet.md)
+- Provider 结果采纳、覆盖和邮箱证据：[references/observation-acceptance.md](references/observation-acceptance.md)
 - 更细的部署与运维说明：[references/repo-layout.md](references/repo-layout.md)
