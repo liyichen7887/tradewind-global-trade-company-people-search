@@ -105,8 +105,20 @@ def _pagination_conflicts(value: Any, path: str = "$") -> list[str]:
     conflicts: list[str] = []
     if isinstance(value, dict):
         normalized = {_normalized_key(str(key)): child for key, child in value.items()}
-        total = next((normalized[key] for key in TOTAL_KEYS if key in normalized), None)
-        has_more = next((normalized[key] for key in HAS_MORE_KEYS if key in normalized), None)
+        metadata = [normalized]
+        metadata.extend(
+            {_normalized_key(str(key)): child for key, child in node.items()}
+            for name in ("meta", "metadata", "pagination", "pageinfo")
+            if isinstance((node := normalized.get(name)), dict)
+        )
+        total = next(
+            (node[key] for node in metadata for key in TOTAL_KEYS if key in node),
+            None,
+        )
+        has_more = next(
+            (node[key] for node in metadata for key in HAS_MORE_KEYS if key in node),
+            None,
+        )
         items = next(
             (normalized[key] for key in ITEM_KEYS if key in normalized and isinstance(normalized[key], list)),
             None,

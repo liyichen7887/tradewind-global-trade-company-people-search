@@ -30,9 +30,8 @@ class ProviderPayloadGuardTests(unittest.TestCase):
 
     def test_inconsistent_pagination_is_not_exhaustive(self) -> None:
         guarded = COMMON.assess_provider_payload({
-            "total_results": 4812,
-            "has_more": False,
-            "results": [{"name": "A"}, {"name": "B"}],
+            "people": [{"name": f"Person {index}"} for index in range(5)],
+            "meta": {"total_results": 7633, "has_more": False},
         })
         self.assertEqual(guarded["coverageStatus"], "not_exhaustive")
         self.assertEqual(
