@@ -54,10 +54,11 @@ python reference_api.py agentic-country-cr-lang -o agentic-country-cr-lang.json
 从 JSON 中按用户目标国家/语言 **查找并复制** 对应的 `country`、`cr`、`lang`（及文档中的 `zone` 等若需要），再组装：
 
 ```bash
-python agentic_api.py search --body '{"keyword":"...","country":"USA","cr":"countryUS","lang":"English"}'
+python agentic_api.py search --direct --direct-reason '用户明确的一次性单边界任务' \
+  --body '{"keyword":"...","country":"USA","cr":"countryUS","lang":"English"}'
 ```
 
-创建任务后用 `agentic_api.py list` / `agentic_api.py task` 轮询（`--body` 以官方文档为准）。
+一次性明确边界可使用 direct；国家级、多产品或多角色研究须先把这些值写入 Agentic Search Plan，验证覆盖矩阵后按 taskKey 提交。创建任务后用 `agentic_api.py list` / `agentic_api.py task` 轮询（`--body` 以官方文档为准）。
 
 ## 三、海关：`GET /api/customs/reference/countries`
 

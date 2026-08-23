@@ -39,7 +39,7 @@
 | 端点 | 说明 |
 |------|------|
 | `POST /api/customs/search`、`/enrich`、`/customs/*` | 以官方请求体为准；`customs_api.py post` 的 `--path` 为 `customs/` 后的相对路径 |
-| `POST /api/agentic/search` 等 | 仅透传 `--body` |
+| `POST /api/agentic/search` 等 | 国家级/多产品研究从已验证计划按 taskKey 读取 requestBody；用户明确的一次性单边界任务才用 `--direct --body` |
 | `POST /api/email/verify` | 仅透传 `--body` |
 | `POST /api/user/*` | 各子命令见 `user_api.py` |
 
@@ -49,4 +49,4 @@
 
 - **本页上文**（people/company search）中的 **`country_code`** 为 **ISO 3166-1 alpha-2**（如 `US`），用于瀑布流地理位置筛选。
 - **`POST /api/agentic/search`** 使用文档规定的 **`country`、`cr`、`lang`**（取值来自国家与语言编码参考，如 `USA` / `countryUS` / `English`），与 ISO2 **不是同一套枚举**。
-- 智能体组 body 前请先拉取参考 JSON：`python reference_api.py agentic-country-cr-lang -o ...`（无需 API Key）。详见 [country-and-locale.md](country-and-locale.md)。
+- 智能体组 body 前请先拉取参考 JSON：`python reference_api.py agentic-country-cr-lang -o ...`（无需 API Key）。国家级、多产品或多角色任务还要读取 [agentic-search-planning.md](agentic-search-planning.md) 并验证覆盖计划。详见 [country-and-locale.md](country-and-locale.md)。

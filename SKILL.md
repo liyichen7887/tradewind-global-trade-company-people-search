@@ -50,7 +50,8 @@ metadata:
 | `company_api.py` | `company-search`, `company-enrich` | `search` / `enrich`（`--body` 或 enrich 的 `--batch-file`） |
 | `people_api.py` | `people-search`, `people-enrich` | 同上 |
 | `customs_api.py` | `customs`, `customs-extended` | `countries`（国家参考，可不设 Key）/ `search` / `enrich` / `post --path companies/detail --body '{...}'` |
-| `agentic_api.py` | `agentic` | `search` / `list` / `task`，各需 `--body` |
+| `validate_agentic_plan.py` | — | 国家级、多产品或多角色 Agentic Search Plan 的本地提交前校验 |
+| `agentic_api.py` | `agentic` | `search` 默认从已验证计划按 taskKey 取 body；`list` / `task` 使用 `--body`；用户明确的一次性单边界请求才用 `--direct` |
 | `email_api.py` | `email-verify` | `verify` / `result --task-id` |
 | `user_api.py` | `user-api/*` | `api-keys-list`、`billing-checkout-session --body`、`access-logs -F skip=0` 等；`-F key=value` 可重复 |
 | `auth_session.py` | `auth` | `register` / `login` / `me`（me 需 Bearer） |
@@ -75,7 +76,7 @@ metadata:
 | 某公司某职位的人、销售/VP、按部门找人 | `people_api.py` `search` / `enrich` | 有域名用 `company.domains`；`job.departments` 用文档枚举；地域用 `company_locations.country_code` 或 `person_locations`（ISO2，见 country-and-locale） |
 | 按行业/规模/地域找公司 | `company_api.py` `search` | `location.country_code` 等为 ISO2 |
 | 进出口、HS、海关企业 | `customs_api.py` | 不确定国家码可先 `countries`；再 `search` / `enrich` / `post` |
-| 大量潜客、画像式、任务式、可稍后取结果（异步，常 1–2 小时级） | `agentic_api.py` `search`，再 `list` / `task` | **先** `reference_api.py agentic-country-cr-lang` 取 `country` / `cr` / `lang`，勿把中文国名直接当 agentic 的 `country` |
+| 大量潜客、画像式、任务式、可稍后取结果（异步，常 1–2 小时级） | `validate_agentic_plan.py`，再 `agentic_api.py` `search` / `list` / `task` | **先**取得 `country` / `cr` / `lang`；国家级、多产品或多角色研究按产品×角色×意图建立覆盖矩阵，每个意图先跑 pilot |
 | 验证邮箱 | `email_api.py` | `verify` → `result` |
 | API Key、账单、用量日志 | `user_api.py` | 见脚本 `--help` |
 
@@ -84,7 +85,7 @@ metadata:
 - **`first_match`**：优先速度、接受「先命中的数据源先返回」、试探性单次查询。
 - **`aggregate`**：需要多源拼全、同一条件要更完整的列表时。
 
-**瀑布流 vs 智能体**：实时、明确公司/职位/地域筛选 → 瀑布流；要跨渠道画像、批量任务、异步拉取 → 智能体；智能体必填字段与参考 JSON 流程见 [references/country-and-locale.md](references/country-and-locale.md)。
+**瀑布流 vs 智能体**：实时、明确公司/职位/地域筛选 → 瀑布流；要跨渠道画像、批量任务、异步拉取 → 智能体。国家级或多产品/角色研究不能用一个宽泛 keyword 代替完整范围，必须先读取 [Agentic Search 提交规划合同](references/agentic-search-planning.md)，验证覆盖矩阵并按 pilot → scale 提交。智能体必填字段与参考 JSON 流程见 [references/country-and-locale.md](references/country-and-locale.md)。
 
 ## 瀑布流 POST 请求体约定（API 2.0）
 
@@ -97,7 +98,7 @@ metadata:
 
 精确公司、人员、海关或邮箱结果交给 GETO 前，按 [Provider Observation 采纳合同](references/observation-acceptance.md) 记录主体锚点、国家字段、覆盖状态和证据范围。法律后缀不构成主体锚点；请求国家没有体现在返回记录时，不能声称该记录通过国家过滤。邮箱验证只支持邮箱可投递性。
 
-Agentic 异步任务按 submit、status、result 三阶段处理。submit 成功消息和非空 taskId 只记录为 `submission_acknowledged_unconfirmed`；状态明确 completed 后才分页读取结果。已有 taskId 和相同 queryBoundary 时恢复原任务，不重复 submit；状态接口错误、HTTP 500、认证失败、限流和余额不足分别保留原状态，不写成 no_result。分页参数、返回条数、去重键、总量和覆盖状态随 ExternalObservation 保存。
+Agentic 异步任务按 plan、pilot、submit、status、result、coverage review 六阶段处理。计划先记录全部 productFamily、roleLane、sourceGoal、排除项、任务依赖和停止条件；lead 与 competitor 分开，购买链明显不同的产品面分开。pilot 未验收国家/角色/产品命中、漂移、重复和分页前，不批量提交 scale。计划内 `search` 只允许 `approved_for_pilot|approved_for_submit` 的 taskKey，并直接使用计划 requestBody，防止临时改词漂移。submit 成功消息和非空 taskId 只记录为 `submission_acknowledged_unconfirmed`；状态明确 completed 后才分页读取结果。已有 taskId 和相同 queryBoundary 时恢复原任务，不重复 submit；状态接口错误、HTTP 500、认证失败、限流和余额不足分别保留原状态，不写成 no_result。分页参数、返回条数、去重键、总量和覆盖状态随 ExternalObservation 保存。
 
 精确域名或法定名称锚定、完整姓名和 Provider 联系方式可以支持联系人 Observation；公司官网或公开职业页用于确认当前任职、职位和职责。姓名掩码、雇主锚点不足或同名冲突不进入正式联系人。Provider 记录可以支持 reachability，不支持 buyingRole、签字权、buyer、payer 或项目授权。精确人员查询 0 结果时，可使用官网、公开职业页或更宽公司名称边界补查，并分别保留查询边界。
 
@@ -107,6 +108,8 @@ Agentic 异步任务按 submit、status、result 三阶段处理。submit 成功
 set TRADEWIND_API_KEY=tw_test_xxx
 python health.py liveness
 python reference_api.py agentic-country-cr-lang -o cr_lang.json
+python validate_agentic_plan.py ../agentic-search-plan.json
+python agentic_api.py search --plan-file ../agentic-search-plan.json --task-key us-formwork-main-contractors-pilot
 python company_api.py search --body "{\"page\":1,\"per_page\":2,\"company\":{\"names\":[\"Stripe\"]}}"
 python people_api.py search --body "{\"page\":1,\"per_page\":10,\"company\":{\"domains\":[\"stripe.com\"]},\"job\":{\"departments\":[\"sales\"],\"job_titles\":[\"account executive\"]}}"
 python user_api.py access-logs -F take=10
@@ -127,5 +130,6 @@ python user_api.py access-logs -F take=10
 - 自然语言问法 → 脚本与字段：[references/intent-routing.md](references/intent-routing.md)
 - 国家码：瀑布流 ISO2 vs 智能体 country/cr/lang：[references/country-and-locale.md](references/country-and-locale.md)
 - 请求体合法键与常见误写：[references/request-body-cheatsheet.md](references/request-body-cheatsheet.md)
+- Agentic 产品×角色×意图覆盖、pilot 与提交门禁：[references/agentic-search-planning.md](references/agentic-search-planning.md)
 - Provider 结果采纳、覆盖和邮箱证据：[references/observation-acceptance.md](references/observation-acceptance.md)
 - 更细的部署与运维说明：[references/repo-layout.md](references/repo-layout.md)

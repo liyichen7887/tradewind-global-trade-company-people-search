@@ -28,6 +28,8 @@
 
 ## Agentic 任务观察
 
+- 国家级、多产品或多角色 Agentic 查询必须能回溯到已验证计划的 planId、taskKey、coverage cell 和 queryBoundary；缺计划的 Provider 结果只能作为孤立的 bounded observation，不能宣称国家或产品覆盖完成。
+- 一个 Agentic task 只证明其 taskKey 对应的产品、角色和 intent 边界。跨任务聚合后按稳定域名、强身份和任务标签去重；标签冲突不自动升级 lead/competitor。
 - submit 成功消息、taskId 和计费元数据只构成 `submission_acknowledged_unconfirmed`；不能据此写入 queued、running、completed 或 no_result。
 - 状态接口明确返回 completed 后才读取结果。错误载荷、HTTP 500、认证失败、限流和余额不足分别保留原状态，不进入结果数据。
 - 相同 taskId 每轮只查询一次；已有 taskId 不重新 submit 相同 queryBoundary。需要重新提交时必须先确认原任务不可恢复并取得用户授权。

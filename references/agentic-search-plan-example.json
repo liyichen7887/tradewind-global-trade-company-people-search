@@ -1,0 +1,186 @@
+{
+  "planVersion": "1.0",
+  "planId": "US-construction-market-2026-08-24",
+  "asOf": "2026-08-24",
+  "country": {
+    "iso2": "US",
+    "agenticCountry": "USA",
+    "cr": "countryUS",
+    "lang": "English",
+    "referenceArtifact": "providers/tradewind/reference/agentic-country-cr-lang.json",
+    "referenceRetrievedOn": "2026-08-24"
+  },
+  "researchScope": {
+    "resultMode": "full",
+    "productFamilies": [
+      "construction_formwork",
+      "offsite_modular"
+    ],
+    "roleLanes": [
+      "main_contractor",
+      "developer_owner",
+      "manufacturer_system_owner"
+    ],
+    "sourceGoals": [
+      "lead_discovery",
+      "competitor_discovery"
+    ],
+    "exclusions": [
+      "Consumer home-improvement retailers"
+    ]
+  },
+  "coverageMatrix": [
+    {
+      "cellKey": "formwork-main-contractor-leads",
+      "productFamily": "construction_formwork",
+      "roleLane": "main_contractor",
+      "sourceGoal": "lead_discovery",
+      "status": "planned",
+      "taskKeys": [
+        "us-formwork-main-contractors-pilot"
+      ],
+      "reason": "Main contractors can buy, rent or specify formwork systems"
+    },
+    {
+      "cellKey": "modular-developer-leads",
+      "productFamily": "offsite_modular",
+      "roleLane": "developer_owner",
+      "sourceGoal": "lead_discovery",
+      "status": "planned",
+      "taskKeys": [
+        "us-modular-developers-scale"
+      ],
+      "reason": "Developers can originate repeatable modular projects"
+    },
+    {
+      "cellKey": "formwork-manufacturer-competitors",
+      "productFamily": "construction_formwork",
+      "roleLane": "manufacturer_system_owner",
+      "sourceGoal": "competitor_discovery",
+      "status": "planned",
+      "taskKeys": [
+        "us-formwork-competitors-pilot"
+      ],
+      "reason": "System owners and manufacturers form the direct competitor surface"
+    },
+    {
+      "cellKey": "modular-manufacturer-competitors",
+      "productFamily": "offsite_modular",
+      "roleLane": "manufacturer_system_owner",
+      "sourceGoal": "competitor_discovery",
+      "status": "planned",
+      "taskKeys": [
+        "us-modular-competitors-scale"
+      ],
+      "reason": "Offsite manufacturers form a distinct competitor surface"
+    }
+  ],
+  "tasks": [
+    {
+      "taskKey": "us-formwork-main-contractors-pilot",
+      "intent": "lead_discovery",
+      "productFamilies": [
+        "construction_formwork"
+      ],
+      "roleLanes": [
+        "main_contractor"
+      ],
+      "queryBoundary": "US main contractors with current concrete high-rise, infrastructure or repeated-floor projects and potential formwork buying, renting or specification influence",
+      "requestBody": {
+        "keyword": "main contractors current concrete high-rise infrastructure repeated-floor projects formwork procurement rental technical office",
+        "country": "USA",
+        "cr": "countryUS",
+        "lang": "English"
+      },
+      "phase": "pilot",
+      "approvalStatus": "approved_for_pilot",
+      "pilotReviewStatus": "pending",
+      "dependsOn": [],
+      "coherenceReason": "One buyer archetype and one construction-formwork demand surface",
+      "dedupKey": "stable_domain_then_legal_name",
+      "expectedOutcome": "A bounded candidate list of formwork-influencing main contractors"
+    },
+    {
+      "taskKey": "us-modular-developers-scale",
+      "intent": "lead_discovery",
+      "productFamilies": [
+        "offsite_modular"
+      ],
+      "roleLanes": [
+        "developer_owner"
+      ],
+      "queryBoundary": "US developers and owners with current repeatable housing, accommodation or institutional offsite modular projects",
+      "requestBody": {
+        "keyword": "developers owners current repeatable housing accommodation institutional offsite modular volumetric projects",
+        "country": "USA",
+        "cr": "countryUS",
+        "lang": "English"
+      },
+      "phase": "scale",
+      "approvalStatus": "planned",
+      "pilotReviewStatus": "not_applicable",
+      "dependsOn": [
+        "us-formwork-main-contractors-pilot"
+      ],
+      "coherenceReason": "One developer archetype and one offsite-modular demand surface",
+      "dedupKey": "stable_domain_then_legal_name",
+      "expectedOutcome": "A bounded candidate list of modular-project developers"
+    },
+    {
+      "taskKey": "us-formwork-competitors-pilot",
+      "intent": "competitor_discovery",
+      "productFamilies": [
+        "construction_formwork"
+      ],
+      "roleLanes": [
+        "manufacturer_system_owner"
+      ],
+      "queryBoundary": "US companies that own, manufacture, sell, rent or distribute commercial concrete formwork systems",
+      "requestBody": {
+        "keyword": "companies own manufacture sell rent distribute concrete formwork systems",
+        "country": "USA",
+        "cr": "countryUS",
+        "lang": "English"
+      },
+      "phase": "pilot",
+      "approvalStatus": "approved_for_pilot",
+      "pilotReviewStatus": "pending",
+      "dependsOn": [],
+      "coherenceReason": "One competitor archetype and one construction-formwork commercial surface",
+      "dedupKey": "stable_domain_then_legal_name",
+      "expectedOutcome": "A bounded candidate list of direct and channel formwork competitors"
+    },
+    {
+      "taskKey": "us-modular-competitors-scale",
+      "intent": "competitor_discovery",
+      "productFamilies": [
+        "offsite_modular"
+      ],
+      "roleLanes": [
+        "manufacturer_system_owner"
+      ],
+      "queryBoundary": "US companies that own, manufacture or commercialize volumetric modular and offsite building systems",
+      "requestBody": {
+        "keyword": "companies own manufacture commercialize volumetric modular offsite building systems",
+        "country": "USA",
+        "cr": "countryUS",
+        "lang": "English"
+      },
+      "phase": "scale",
+      "approvalStatus": "planned",
+      "pilotReviewStatus": "not_applicable",
+      "dependsOn": [
+        "us-formwork-competitors-pilot"
+      ],
+      "coherenceReason": "One competitor archetype and one offsite-modular commercial surface",
+      "dedupKey": "stable_domain_then_legal_name",
+      "expectedOutcome": "A bounded candidate list of modular-system competitors"
+    }
+  ],
+  "submissionPolicy": {
+    "pilotRequired": true,
+    "maxConcurrent": 2,
+    "reSubmitRequiresApproval": true,
+    "overlapPolicy": "reject_duplicate_query_boundary"
+  }
+}
