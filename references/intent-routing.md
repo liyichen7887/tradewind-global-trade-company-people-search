@@ -28,7 +28,7 @@
 
 | 用户说法（示例） | 脚本 | 关键 body 思路 |
 |------------------|------|----------------|
-| 「帮我跑一批潜客任务」「多渠道画像获客」「一两小时后要结果」 | `agentic_api.py search` → `list` / `task` | **先** 下载 `reference_api.py agentic-country-cr-lang`，从 JSON 选 **`country`、`cr`、`lang`**，再填 `keyword` 等；勿直接把「美国」当 `country` 字符串而不查表 |
+| 「帮我跑一批潜客任务」「多渠道画像获客」「一两小时后要结果」 | `validate_agentic_plan.py` → `agentic_api.py search` → `list` / `task` | **先** 下载国家语言参考，按 [agentic-search-planning.md](agentic-search-planning.md) 建产品×角色×意图覆盖计划并提交 pilot；勿直接用一个宽 keyword 代表整个国家范围 |
 | 「任务进度」「任务列表」 | `agentic_api.py list` / `task` | `--body` 以官方文档为准 |
 
 ## 邮箱验证
@@ -46,4 +46,4 @@
 ## 模式选择速记
 
 - **实时、条件明确**（公司名/域名/职位/地域）：`people` 或 `company` **search**，并显式设置 `waterfall.mode`（要快用 `first_match`，要更全用 `aggregate`）。
-- **批量、异步、画像式**：**agentic**；国家语言必须对齐 **cr-lang 参考 JSON**。
+- **批量、异步、画像式**：**agentic**；国家语言必须对齐 **cr-lang 参考 JSON**，国家级或多产品/角色任务必须先验证 Agentic Search Plan。
