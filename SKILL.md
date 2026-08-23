@@ -6,7 +6,6 @@ description: >-
   reference (technologies CSV, agentic country/lang JSON). 找公司、找人、招聘、
   销售职位、海关数据、进出口、智能体获客、国家地区筛选、ISO country code、
   瀑布流 first_match/aggregate、OpenClaw. Also NestJS/Prisma tradewind-api repo work.
-version: 0.3.3
 metadata:
   openclaw:
     emoji: "\u2693"
@@ -97,6 +96,10 @@ metadata:
 更全的合法键与「误写 → 正写」对照见 [references/request-body-cheatsheet.md](references/request-body-cheatsheet.md)。
 
 精确公司、人员、海关或邮箱结果交给 GETO 前，按 [Provider Observation 采纳合同](references/observation-acceptance.md) 记录主体锚点、国家字段、覆盖状态和证据范围。法律后缀不构成主体锚点；请求国家没有体现在返回记录时，不能声称该记录通过国家过滤。邮箱验证只支持邮箱可投递性。
+
+Agentic 异步任务按 submit、status、result 三阶段处理。submit 成功消息和非空 taskId 只记录为 `submission_acknowledged_unconfirmed`；状态明确 completed 后才分页读取结果。已有 taskId 和相同 queryBoundary 时恢复原任务，不重复 submit；状态接口错误、HTTP 500、认证失败、限流和余额不足分别保留原状态，不写成 no_result。分页参数、返回条数、去重键、总量和覆盖状态随 ExternalObservation 保存。
+
+精确域名或法定名称锚定、完整姓名和 Provider 联系方式可以支持联系人 Observation；公司官网或公开职业页用于确认当前任职、职位和职责。姓名掩码、雇主锚点不足或同名冲突不进入正式联系人。Provider 记录可以支持 reachability，不支持 buyingRole、签字权、buyer、payer 或项目授权。精确人员查询 0 结果时，可使用官网、公开职业页或更宽公司名称边界补查，并分别保留查询边界。
 
 示例（在 `scripts/` 目录下）：
 

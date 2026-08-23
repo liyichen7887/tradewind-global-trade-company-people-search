@@ -26,6 +26,13 @@
 - `providerStatus=upstream_unavailable`、warning=`invalid_upstream_payload` 表示上游返回应用堆栈或错误载荷；其中的 success、记录数和伪数据不进入 ExternalObservation.data。
 - 精确查询返回 0 只说明该 queryBoundary 无命中。
 
+## Agentic 任务观察
+
+- submit 成功消息、taskId 和计费元数据只构成 `submission_acknowledged_unconfirmed`；不能据此写入 queued、running、completed 或 no_result。
+- 状态接口明确返回 completed 后才读取结果。错误载荷、HTTP 500、认证失败、限流和余额不足分别保留原状态，不进入结果数据。
+- 相同 taskId 每轮只查询一次；已有 taskId 不重新 submit 相同 queryBoundary。需要重新提交时必须先确认原任务不可恢复并取得用户授权。
+- 结果分页保存请求页码/offset、limit、返回条数和去重键。分页元数据与实测不一致时，以可复现的请求结果确定边界并标记 warning。
+
 ## 联系人邮箱桥接
 
 邮箱验证只支持邮箱自身的可投递性：
@@ -46,4 +53,4 @@
 }
 ```
 
-任职、职位、授权和采购角色分别需要公司官网、人员公开职业页或多源一致证据。
+任职、职位、授权和采购角色分别需要公司官网、人员公开职业页或多源一致证据。精确域名/法定名称锚定、完整姓名和 Provider 联系方式可以支持 Provider 范围内的联系人记录；姓名掩码或雇主身份 unresolved 时不进入 `contacts[]`。
